@@ -35,5 +35,10 @@ class CustomClusterRenderer(context: Context,map:GoogleMap,clusterManager: Clust
 
     }
 
+    override fun setOnClusterItemClickListener(listener: ClusterManager.OnClusterItemClickListener<CustomMarker>?) {
+        super.setOnClusterItemClickListener(listener)
+    }
+
+
 
 }

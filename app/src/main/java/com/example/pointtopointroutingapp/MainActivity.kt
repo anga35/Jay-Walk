@@ -25,7 +25,10 @@ import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.clustering.ClusterManager
 import com.example.pointtopointroutingapp.CustomMarker
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity(),
+    GoogleMap.OnCameraMoveStartedListener,
+    GoogleMap.OnCameraMoveListener,
+    OnMapReadyCallback {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mMap: GoogleMap
     private var mapFragment: SupportMapFragment? = null
@@ -99,7 +102,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 if(task.isSuccessful){
                     location=task.result
                     if(mMap!=null){
-                        setCameraView()
+                        setCameraView(41.26636,-95.95708)
+                        setupClusterer()
                     }
                     Log.d("Latitude", "displayMap: ${location!!.latitude}")
                     Log.d("Longitude","displayMap ${location!!.longitude}")
@@ -111,6 +115,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             mapFragment = SupportMapFragment.newInstance(options)
             supportFragmentManager.beginTransaction().replace(R.id.map, mapFragment!!).commit()
             mapFragment!!.getMapAsync(this)
+
         }
     }
 
@@ -131,34 +136,62 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         )
         if(location!=null){
             setCameraView()
+            setupClusterer()
         }
         mMap.isMyLocationEnabled=true
+        mMap.setOnCameraMoveListener {
+            val cameraPos=mMap.cameraPosition
+            val latitude=cameraPos.target.latitude
+            val longitude=cameraPos.target.longitude
+            if((latitude<41.3 && latitude>41.1) && (longitude> -96.0 && longitude< -95.90)){
+                clusterManager.cluster()
+            }
+
+        }
     }
 
 
-    private fun setCameraView(){
+
+    private fun setCameraView(latitude:Double=Constants.destinations[9].latitude,longitude:Double=Constants.destinations[9].longitude){
 
 
-        val bottomBoundary=location?.longitude!!-0.1
-        val leftBoundary=location?.latitude!!-0.1
-        val topBoundary=location?.longitude!!+0.1
-        val rightBoundary=location?.latitude!!+0.1
+        val bottomBoundary=longitude!!-0.1
+        val leftBoundary=latitude!!-0.1
+        val topBoundary=longitude!!+0.1
+        val rightBoundary=latitude!!+0.1
         val mapBoundary= LatLngBounds(LatLng(leftBoundary,bottomBoundary),LatLng(rightBoundary,topBoundary))
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mapBoundary,0))
-setupClusterer()
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f))
+
     }
 
 
     fun setupClusterer(){
         clusterManager=ClusterManager<CustomMarker>(this,mMap)
         clusterManager.renderer=CustomClusterRenderer(this,mMap,clusterManager)
-        clusterManager.addItem(CustomMarker(
-            LatLng(location!!.latitude,
-            location!!.longitude),"TESTO","FF",R.drawable.my_pic
-        ))
+        var i =0
+        for(destination in Constants.destinations){
+            clusterManager.addItem(CustomMarker(
+                LatLng(destination.latitude,
+                    destination.longitude),"TESTO","FF",destination.markerRes
+            )
+            )
+
+        }
+        clusterManager.setAnimation(false)
         clusterManager.cluster()
+//        setCameraView()
 
     }
+
+    override fun onCameraMove() {
+        clusterManager.cluster()
+    }
+
+    override fun onCameraMoveStarted(p0: Int) {
+
+    }
+
 
 }
