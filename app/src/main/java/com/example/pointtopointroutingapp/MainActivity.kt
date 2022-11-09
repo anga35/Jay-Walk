@@ -2,6 +2,7 @@ package com.example.pointtopointroutingapp
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,16 +15,25 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.pointtopointroutingapp.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.clustering.ClusterManager
 import com.example.pointtopointroutingapp.CustomMarker
+import com.google.android.gms.maps.model.*
+import com.google.maps.DirectionsApiRequest
+import com.google.maps.GeoApiContext
+import com.google.maps.PendingResult
+import com.google.maps.android.collections.MarkerManager
+import com.google.maps.internal.PolylineEncoding
+import com.google.maps.model.DirectionsResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity(),
     GoogleMap.OnCameraMoveStartedListener,
@@ -34,7 +44,8 @@ class MainActivity : AppCompatActivity(),
     private var mapFragment: SupportMapFragment? = null
     var location: Location?=null
     lateinit var clusterManager: ClusterManager<CustomMarker>
-
+    lateinit var geoApiContext:GeoApiContext
+    var mPolyline: Polyline?=null
     private val startSettingsForResult=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
 
 
@@ -116,6 +127,9 @@ class MainActivity : AppCompatActivity(),
             supportFragmentManager.beginTransaction().replace(R.id.map, mapFragment!!).commit()
             mapFragment!!.getMapAsync(this)
 
+
+
+
         }
     }
 
@@ -148,9 +162,49 @@ class MainActivity : AppCompatActivity(),
             }
 
         }
+//        mMap.setOnInfoWindowClickListener {
+//            calculateDirection(it)
+//        }
+        geoApiContext=GeoApiContext.Builder()
+            .apiKey("AIzaSyBae1961sKyOmV6O0wbzHDI0r6_G_Pd4TI")
+            .build()
+
+
     }
 
 
+    private fun calculateDirection(marker: Marker){
+        val TAG="calculateDirections"
+        val destination=com.google.maps.model.LatLng(
+            marker.position.latitude,
+            marker.position.longitude)
+        val directions=DirectionsApiRequest(geoApiContext)
+        directions.alternatives(true)
+        directions.origin(
+           com.google.maps.model.LatLng(
+               Constants.destinations[0].latitude,
+               Constants.destinations[0].longitude
+           )
+        )
+        directions.destination(destination).setCallback(
+            object: PendingResult.Callback<DirectionsResult>{
+                override fun onResult(result: DirectionsResult?) {
+                    Log.d(TAG,result!!.routes[0].toString())
+                    Log.d(TAG, result!!.routes[0].legs[0].duration.toString())
+                    Log.d(TAG, result!!.routes[0].legs[0].distance.toString())
+
+
+                    showPolylineToMap(result!!)
+                }
+
+                override fun onFailure(e: Throwable?) {
+                    Log.d(TAG,"ERRORRRR")
+                }
+
+            }
+        )
+
+    }
 
     private fun setCameraView(latitude:Double=Constants.destinations[9].latitude,longitude:Double=Constants.destinations[9].longitude){
 
@@ -170,6 +224,13 @@ class MainActivity : AppCompatActivity(),
     fun setupClusterer(){
         clusterManager=ClusterManager<CustomMarker>(this,mMap)
         clusterManager.renderer=CustomClusterRenderer(this,mMap,clusterManager)
+
+        val collection=clusterManager.markerCollection
+
+        collection.setOnInfoWindowClickListener {
+            showAlertDialog(it)
+        }
+
         var i =0
         for(destination in Constants.destinations){
             clusterManager.addItem(CustomMarker(
@@ -185,12 +246,63 @@ class MainActivity : AppCompatActivity(),
 
     }
 
-    override fun onCameraMove() {
-        clusterManager.cluster()
+
+    fun showAlertDialog(marker:Marker){
+
+
+        val builder=AlertDialog.Builder(this)
+            .setPositiveButton("Yes") { dialog, id ->
+            calculateDirection(marker)
+
+            }.setNegativeButton("No"){
+                    dialog,id->
+                dialog.dismiss()
+
+            }.setMessage("Do you want to go to this location?")
+            .setTitle("Direction")
+        builder.create().show()
+
+
     }
+
+    fun showPolylineToMap(directionsResult: DirectionsResult){
+        for (route in directionsResult.routes){
+            val decodedPath=PolylineEncoding.decode(route.overviewPolyline.encodedPath)
+            val newDecodedPath= ArrayList<LatLng>()
+            for(latLng in decodedPath){
+                newDecodedPath.add(LatLng(latLng.lat,latLng.lng))
+            }
+
+            lifecycleScope.launch {
+                mPolyline?.apply {
+                    remove()
+
+                }
+                val polyline=mMap.addPolyline(PolylineOptions().addAll(newDecodedPath))
+                mPolyline=polyline
+                polyline.color=ContextCompat.getColor(this@MainActivity,R.color.darkGrey)
+                polyline.isClickable=true
+            }
+
+        }
+
+        lifecycleScope.launch{
+            withContext(Dispatchers.Main){
+
+            }
+        }
+
+
+
+
+    }
+
 
     override fun onCameraMoveStarted(p0: Int) {
 
+    }
+
+    override fun onCameraMove() {
     }
 
 
