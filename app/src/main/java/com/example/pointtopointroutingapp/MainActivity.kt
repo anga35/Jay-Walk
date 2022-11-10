@@ -23,6 +23,7 @@ import com.google.android.gms.maps.*
 import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.clustering.ClusterManager
 import com.example.pointtopointroutingapp.CustomMarker
+import com.example.pointtopointroutingapp.models.PolyLineData
 import com.google.android.gms.maps.model.*
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
@@ -45,7 +46,11 @@ class MainActivity : AppCompatActivity(),
     var location: Location?=null
     lateinit var clusterManager: ClusterManager<CustomMarker>
     lateinit var geoApiContext:GeoApiContext
+    var mPolyData=ArrayList<PolyLineData>()
     var mPolyline: Polyline?=null
+    var selectedMarker:Marker?=null
+
+    var previousPinPoint:Marker?=null
     private val startSettingsForResult=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
 
 
@@ -162,6 +167,25 @@ class MainActivity : AppCompatActivity(),
             }
 
         }
+
+        mMap.setOnPolylineClickListener {
+
+            mPolyline?.color=ContextCompat.getColor(this,R.color.darkGrey)
+            mPolyline?.zIndex=0F
+            it.color=ContextCompat.getColor(this,R.color.mBlue)
+            mPolyline=it
+            it.zIndex=1F
+            val polyData=mPolyData.find { it.polyline==mPolyline }
+
+
+            selectedMarker!!.isVisible=false
+            previousPinPoint?.remove()
+            previousPinPoint=mMap.addMarker(MarkerOptions().position(selectedMarker!!.position)
+                .snippet(polyData!!.leg.duration.toString())
+                .title(selectedMarker!!.title))
+
+
+        }
 //        mMap.setOnInfoWindowClickListener {
 //            calculateDirection(it)
 //        }
@@ -171,6 +195,8 @@ class MainActivity : AppCompatActivity(),
 
 
     }
+
+
 
 
     private fun calculateDirection(marker: Marker){
@@ -221,6 +247,24 @@ class MainActivity : AppCompatActivity(),
     }
 
 
+    fun resetMap(){
+
+        mMap?.apply {
+            clear()
+        }
+
+        clusterManager?.apply {
+            clearItems()
+        }
+
+        mPolyData.clear()
+        mPolyline=null
+        selectedMarker=null
+        previousPinPoint=null
+
+    }
+
+
     fun setupClusterer(){
         clusterManager=ClusterManager<CustomMarker>(this,mMap)
         clusterManager.renderer=CustomClusterRenderer(this,mMap,clusterManager)
@@ -228,14 +272,18 @@ class MainActivity : AppCompatActivity(),
         val collection=clusterManager.markerCollection
 
         collection.setOnInfoWindowClickListener {
+
+
             showAlertDialog(it)
         }
 
+
         var i =0
+
         for(destination in Constants.destinations){
             clusterManager.addItem(CustomMarker(
                 LatLng(destination.latitude,
-                    destination.longitude),"TESTO","FF",destination.markerRes
+                    destination.longitude),destination.name,"FF",destination.markerRes
             )
             )
 
@@ -252,6 +300,9 @@ class MainActivity : AppCompatActivity(),
 
         val builder=AlertDialog.Builder(this)
             .setPositiveButton("Yes") { dialog, id ->
+                previousPinPoint?.remove()
+                selectedMarker?.isVisible=true
+                selectedMarker=marker
             calculateDirection(marker)
 
             }.setNegativeButton("No"){
@@ -266,34 +317,67 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun showPolylineToMap(directionsResult: DirectionsResult){
-        for (route in directionsResult.routes){
+        lifecycleScope.launch {
+            withContext(Dispatchers.Main){
+                if(mPolyData.size>0){
+                    for(data in mPolyData){
+                        data.polyline.remove()
+                    }
+                    mPolyData.clear()
+                }
+
+            }
+
+
+        for ((i,route) in (directionsResult.routes).withIndex()){
             val decodedPath=PolylineEncoding.decode(route.overviewPolyline.encodedPath)
             val newDecodedPath= ArrayList<LatLng>()
             for(latLng in decodedPath){
                 newDecodedPath.add(LatLng(latLng.lat,latLng.lng))
             }
 
-            lifecycleScope.launch {
-                mPolyline?.apply {
-                    remove()
+
+                withContext(Dispatchers.Main){
+                    val polyline=mMap.addPolyline(PolylineOptions().addAll(newDecodedPath))
+                    val polyLineData=PolyLineData(polyline,route.legs[0])
+                    mPolyData.add(polyLineData)
+                    if(i==0){
+                        mPolyline=polyline
+                        polyline.color=ContextCompat.getColor(this@MainActivity,R.color.mBlue)
+                        polyline.zIndex= 1F
+                        polyline.isClickable=true
+                        selectedMarker!!.isVisible=false
+
+                        goToRoute(polyLineData)
+
+                    }
+                    else{
+                        polyline.color=ContextCompat.getColor(this@MainActivity,R.color.darkGrey)
+                        polyline.zIndex=0F
+                        polyline.isClickable=true
+                    }
 
                 }
-                val polyline=mMap.addPolyline(PolylineOptions().addAll(newDecodedPath))
-                mPolyline=polyline
-                polyline.color=ContextCompat.getColor(this@MainActivity,R.color.darkGrey)
-                polyline.isClickable=true
+
             }
 
         }
 
-        lifecycleScope.launch{
-            withContext(Dispatchers.Main){
-
-            }
-        }
 
 
 
+
+
+    }
+
+    fun goToRoute(polyLineData: PolyLineData){
+        previousPinPoint?.remove()
+
+
+        selectedMarker!!.isVisible=false
+        previousPinPoint=mMap.addMarker(MarkerOptions().position(selectedMarker!!.position)
+            .snippet(polyLineData!!.leg.duration.toString())
+            .title(selectedMarker!!.title))
 
     }
 

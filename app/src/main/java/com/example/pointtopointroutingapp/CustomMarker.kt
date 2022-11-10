@@ -28,6 +28,9 @@ class CustomMarker(
         return icon
     }
 
+    fun setSnippet(snippet: String){
+        this.snippet=snippet
+    }
 
 
 }
