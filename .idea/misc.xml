@@ -3,8 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/drawable/bottom_sheet_toggle.xml" value="0.102" />
         <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/drawable/location_panel_bg.xml" value="0.1" />
-        <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/layout/activity_main.xml" value="0.16" />
+        <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/layout/item_destination.xml" value="0.16981132075471697" />
+        <entry key="..\:/Dev/Android_Projects/PointToPointRoutingApp/app/src/main/res/xml/scene_01.xml" value="0.101953125" />
       </map>
     </option>
   </component>

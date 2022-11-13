@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -13,7 +13,6 @@
         android:layout_height="match_parent"
         android:id="@+id/map"
 
-
         ></FrameLayout>
 
 
@@ -24,15 +23,47 @@
 
         ></ImageButton>
 
-    <LinearLayout
+
+    <FrameLayout
+        android:id="@+id/sheet"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:background="@drawable/location_panel_bg"
-        android:layout_gravity="bottom"
-        android:layout_marginHorizontal="5dp"
-        android:clickable="true"
-        ></LinearLayout>
+        android:layout_height="400dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
 
 
 
-</FrameLayout>
+        >
+        <LinearLayout
+            android:id="@+id/slidable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/location_panel_bg"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:clickable="true"
+            >
+
+           <View
+               android:layout_width="59dp"
+               android:layout_height="7dp"
+               android:background="@drawable/bottom_sheet_toggle"
+               android:layout_margin="20dp"
+               ></View>
+
+<androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/rv_destinations"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    ></androidx.recyclerview.widget.RecyclerView>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto"
+    >
+
+
+    <Transition
+        motion:constraintSetStart="@+id/start"
+        motion:constraintSetEnd="@+id/end"
+        motion:duration="1000"
+        >
+        <OnSwipe
+            motion:touchAnchorId="@+id/slidable_layout"
+            motion:touchAnchorSide="top"
+            motion:dragDirection="dragUp"
+            ></OnSwipe>
+    </Transition>
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:id="@+id/slidable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            ></Constraint>
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:id="@id/slidable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            ></Constraint>
+
+
+    </ConstraintSet>
+
+
+</MotionScene>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp">
+
+
+    <ImageView
+        android:id="@+id/imv_destination"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/no_1"
+
+        ></ImageView>
+
+    <TextView
+        android:id="@+id/tv_destination"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+
+        android:text="Malcolm Function"
+        android:fontFamily="@font/poppins"
+        android:textSize="14sp"
+        android:textColor="#1E2022"
+        android:layout_marginTop="3dp"
+        android:layout_marginLeft="10dp"
+        ></TextView>
+
+    <ImageView
+        android:id="@+id/imv_destination_goto"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@drawable/ic_baseline_my_location_24"
+
+        ></ImageView>
+
+
+
+</LinearLayout>
