@@ -18,10 +18,14 @@
 
 
     <ImageButton
+        android:id="@+id/btn_refresh_map"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-
-        ></ImageButton>
+        android:layout_margin="10dp"
+        android:src="@drawable/ic_round_refresh_24"
+        app:tint="#757575"
+        android:backgroundTint="@color/white"
+        android:elevation="10dp"></ImageButton>
 
 
     <FrameLayout

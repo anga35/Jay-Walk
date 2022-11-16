@@ -71,6 +71,10 @@ class MainActivity : AppCompatActivity(),
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.btnRefreshMap.setOnClickListener {
+            resetMap()
+        }
+
         BottomSheetBehavior.from(binding.sheet).apply {
             peekHeight = 200
             this.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -275,6 +279,8 @@ class MainActivity : AppCompatActivity(),
     private fun setCameraView(
         latitude: Double = 41.26443,
         longitude: Double = -95.94438,
+//        latitude: Double = 6.894475,
+//        longitude: Double = 3.724666,
         zoomIn:Boolean=false
     ) {
 
@@ -298,18 +304,25 @@ class MainActivity : AppCompatActivity(),
 
     fun resetMap() {
 
-        mMap?.apply {
-            clear()
+//        mMap?.apply {
+//            clear()
+//        }
+//
+//        clusterManager?.apply {
+//            clearItems()
+//        }
+        for(polyData in mPolyData.map { it.polyline }){
+            polyData.remove()
         }
 
-        clusterManager?.apply {
-            clearItems()
-        }
 
         mPolyData.clear()
         mPolyline = null
-        selectedMarker = null
-        previousPinPoint = null
+        previousPinPoint?.remove()
+        selectedMarker?.isVisible=true
+//        selectedMarker = null
+//        previousPinPoint = null
+//        setupClusterer()
 
     }
 
