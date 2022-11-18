@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class MainActivity : AppCompatActivity(),
     GoogleMap.OnCameraMoveStartedListener,
@@ -133,8 +134,30 @@ class MainActivity : AppCompatActivity(),
             val locationCallback=object:LocationCallback(){
                 override fun onLocationResult(locationResult: LocationResult) {
                     val mLocation=locationResult.lastLocation
+                    location=mLocation
                     Log.d("LASTLOCATION", "displayMap: ${mLocation!!.latitude}")
-                    Toast.makeText(this@MainActivity,"lat ${mLocation.latitude}",Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(this@MainActivity,"lat ${mLocation.latitude}",Toast.LENGTH_SHORT).show()
+
+                    selectedMarker?.apply {
+
+                        val desLat=position.latitude
+                        val desLon=position.longitude
+                        val bigLat=BigDecimal("$desLat")
+                        val bigOriginLat=BigDecimal("${mLocation.latitude}")
+                        val diffLat=bigLat.subtract(bigOriginLat).abs()
+
+                        val bigLon=BigDecimal("$desLon")
+                        val bigOriginLon=BigDecimal("${mLocation.longitude}")
+                        val diffLon=bigLon.subtract(bigOriginLon).abs()
+
+//                        Toast.makeText(this@MainActivity,"lat ${diffLat} lon ${diffLon}",Toast.LENGTH_SHORT).show()
+                        if(diffLat<=BigDecimal("0.0000600") && diffLon<=(BigDecimal("0.0000600"))){
+                            Toast.makeText(this@MainActivity,"You are at your destination",Toast.LENGTH_SHORT).show()
+                            resetMap()
+                        }
+                    }
+
+
 
                 }
             }
@@ -151,8 +174,8 @@ class MainActivity : AppCompatActivity(),
                         setCameraView()
                         setupClusterer()
                     }
-                    Log.d("Latitude", "displayMap: ${location!!.latitude}")
-                    Log.d("Longitude", "displayMap ${location!!.longitude}")
+                    Log.d("Latitude", "displayMap: ${location!!.latitude-6.890618}")
+                    Log.d("Longitude", "displayMap ${location!!.longitude-3.722744}")
 
 
                 }
@@ -252,8 +275,8 @@ class MainActivity : AppCompatActivity(),
         directions.alternatives(true)
         directions.origin(
             com.google.maps.model.LatLng(
-                Constants.destinations[0].latitude,
-                Constants.destinations[0].longitude
+                location!!.latitude,
+                location!!.longitude
             )
         )
         directions.destination(destination).setCallback(
@@ -320,7 +343,7 @@ class MainActivity : AppCompatActivity(),
         mPolyline = null
         previousPinPoint?.remove()
         selectedMarker?.isVisible=true
-//        selectedMarker = null
+        selectedMarker = null
 //        previousPinPoint = null
 //        setupClusterer()
 
@@ -348,7 +371,7 @@ class MainActivity : AppCompatActivity(),
                     LatLng(
                         destination.latitude,
                         destination.longitude
-                    ), destination.name, "FF", destination.markerRes
+                    ), destination.name, destination.desc, destination.markerRes
                 )
             )
 
@@ -366,6 +389,7 @@ class MainActivity : AppCompatActivity(),
         val builder = AlertDialog.Builder(this)
             .setPositiveButton("Yes") { dialog, id ->
                 previousPinPoint?.remove()
+
                 selectedMarker?.isVisible = true
                 selectedMarker = marker
                 calculateDirection(marker)

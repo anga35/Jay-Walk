@@ -27,6 +27,8 @@ class CustomClusterRenderer(context: Context,map:GoogleMap,clusterManager: Clust
     }
 
     override fun onBeforeClusterItemRendered(item: CustomMarker, markerOptions: MarkerOptions) {
+
+
         imageView.setImageResource(item.getIcon())
         val icon=iconGenerator.makeIcon()
         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon))
